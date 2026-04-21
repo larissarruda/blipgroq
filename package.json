@@ -1,0 +1,38 @@
+{
+  "name": "omdb-ai-agent",
+  "version": "1.0.0",
+  "description": "Agente de IA Generativa com function calling (Groq + LLaMA) integrado à API do OMDb. Fallback inteligente para chatbot Blip.",
+  "main": "src/server.js",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test --experimental-test-coverage \"test/**/*.test.js\""
+  },
+  "keywords": [
+    "blip",
+    "chatbot",
+    "groq",
+    "llama",
+    "function-calling",
+    "omdb",
+    "ia-generativa"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.4.1",
+    "groq-sdk": "^0.11.0",
+    "helmet": "^8.0.0",
+    "pino": "^9.5.0",
+    "pino-http": "^10.3.0",
+    "undici": "^6.21.0",
+    "zod": "^3.23.8"
+  }
+}
