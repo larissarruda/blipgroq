@@ -8,7 +8,6 @@ const groq = new Groq({ apiKey: config.GROQ_API_KEY });
 const MAX_TOOL_ITERATIONS = 5;
 const LLM_TIMEOUT_MS = 20_000;
 
-/** Remove raw <function=...>...</function> tags that some models emit in text. */
 function sanitizeReply(text) {
   return text
     .replace(/<function=[^>]*>.*?<\/function>/gs, '')
@@ -71,12 +70,6 @@ const toolRegistry = {
   search_omdb: runOmdbTool,
 };
 
-/**
- * Executa uma conversa com o LLM, resolvendo tool-calls até obter uma resposta final.
- * @param {string} userMessage
- * @param {Array<{role:string,content:string}>} [history]
- * @returns {Promise<{reply:string, toolCalls:Array, usage:object|undefined}>}
- */
 export async function askAgent(userMessage, history = []) {
   const messages = [
     { role: 'system', content: SYSTEM_PROMPT },
@@ -116,7 +109,6 @@ export async function askAgent(userMessage, history = []) {
       };
     }
 
-    // Executa cada tool-call solicitada
     for (const call of toolCalls) {
       const fnName = call.function?.name;
       const handler = toolRegistry[fnName];
@@ -146,7 +138,6 @@ export async function askAgent(userMessage, history = []) {
     }
   }
 
-  // Falha de segurança: excedeu iterações
   return {
     reply:
       'Tive dificuldades para montar a resposta agora. Pode reformular sua pergunta sobre o filme ou série?',

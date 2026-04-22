@@ -6,9 +6,6 @@ import { logger } from './logger.js';
 const OMDB_BASE_URL = 'https://www.omdbapi.com/';
 const OMDB_TIMEOUT_MS = 8_000;
 
-/**
- * Schema de entrada da tool. Exposto para o LLM via JSON Schema.
- */
 export const omdbInputSchema = z
   .object({
     title: z.string().trim().min(1).max(200).optional(),
@@ -30,9 +27,6 @@ export const omdbInputSchema = z
     message: 'Informe ao menos "title" ou "imdb_id".',
   });
 
-/**
- * Definição da tool no formato esperado pelo Groq function calling.
- */
 export const omdbToolDefinition = {
   type: 'function',
   function: {
@@ -73,10 +67,6 @@ export const omdbToolDefinition = {
   },
 };
 
-/**
- * Executa a tool contra a API OMDb.
- * Retorna sempre um objeto serializável para ser enviado ao LLM.
- */
 export async function runOmdbTool(rawArgs) {
   const parsed = omdbInputSchema.safeParse(rawArgs ?? {});
   if (!parsed.success) {
@@ -117,7 +107,6 @@ export async function runOmdbTool(rawArgs) {
       return { ok: false, error: 'not_found', message: data.Error ?? 'Título não encontrado.' };
     }
 
-    // Normaliza chaves para snake_case/camelCase amigáveis ao modelo
     return {
       ok: true,
       result: {

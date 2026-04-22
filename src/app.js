@@ -31,7 +31,6 @@ export function createApp() {
     message: { error: 'rate_limited', message: 'Muitas requisições, tente novamente em instantes.' },
   });
 
-  // Auth opcional via Bearer token
   function requireAuth(req, res, next) {
     if (!config.AGENT_AUTH_TOKEN) return next();
     const header = req.get('authorization') ?? '';
