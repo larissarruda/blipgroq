@@ -7,7 +7,7 @@ const OMDB_BASE_URL = 'https://www.omdbapi.com/';
 const OMDB_TIMEOUT_MS = 8_000;
 
 /**
- * Schema de entrada da tool. Exposto para o LLM via JSON Schema (ver toolDefinition).
+ * Schema de entrada da tool. Exposto para o LLM via JSON Schema.
  */
 export const omdbInputSchema = z
   .object({
@@ -31,7 +31,7 @@ export const omdbInputSchema = z
   });
 
 /**
- * Definição da tool no formato esperado pelo Groq/OpenAI function calling.
+ * Definição da tool no formato esperado pelo Groq function calling.
  */
 export const omdbToolDefinition = {
   type: 'function',
