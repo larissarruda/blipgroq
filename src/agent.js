@@ -9,7 +9,7 @@ const MAX_TOOL_ITERATIONS = 3;
 const LLM_TIMEOUT_MS = 20_000;
 
 export const SYSTEM_PROMPT = `
-Você é o "Cine-Assistente", um agente conversacional em português do Brasil que atua como fallback
+Você é o "IntelPlay", um agente conversacional em português do Brasil que atua como fallback
 de um chatbot de recomendação de filmes e séries na plataforma Blip.
 
 OBJETIVOS:
