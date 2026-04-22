@@ -1,5 +1,7 @@
 ﻿# IntelPlay: Agente de Recomendação de Filmes e Séries
 
+**[Testar o chatbot ao vivo](https://larissa-arruda-erfpc.chat.blip.ai/?appKey=aW50ZWxicmFzOTpkZTJjZmM5NS05MWY1LTRiNWItYmE0ZS0wYTQ0YTA3M2U0YzU=&_gl=1*14aj4nh*_gcl_au*NzA4NzkwODkwLjE3NzYwMTc4NjI.*_ga*NTI4OTI0NDA2LjE3NzYwMTc4NjI.*_ga_8GVWK8YMGL*czE3NzY4MjAwMDUkbzE2JGcxJHQxNzc2ODIwMDk0JGo0MiRsMCRoNTI2MTIyMTgx)**
+
 Esse projeto é o backend de um chatbot de recomendação de filmes e séries, desenvolvido como parte do Desafio 4 da Intelbras. A ideia é simples: quando o usuário manda uma mensagem no Blip e o NLP não entende o que ele quer, esse é o fallback. O agente usa um LLM (Groq com LLaMA 3.3) pra interpretar a mensagem, buscar dados reais na API do OMDb quando necessário, e responder em português de um jeito natural.
 
 ## Como funciona
