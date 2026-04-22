@@ -138,15 +138,11 @@ As variáveis de ambiente são validadas na inicialização do servidor e o cont
 
 **Helmet + rate-limit**
 
-O endpoint é público, então qualquer um pode bater nele. Cada requisição consome créditos da API do Groq, então o rate-limit era essencial. O Helmet cuida dos headers HTTP mais básicos.
+O endpoint é público, então qualquer um pode bater nele. Cada requisição consome créditos da API do Groq, então o rate-limit era essencial.
 
-**`node --test` sem dependências de teste**
+**Formatação da resposta**
 
-Optei por não adicionar Jest ou Vitest. O test runner nativo do Node 20 resolve bem pra esse tamanho de projeto e mantém o `node_modules` menor.
-
-**Sanitização do reply**
-
-Durante os testes percebi que o modelo às vezes emite chamadas de ferramenta como texto cru (`<function=...>`) em vez de usar o mecanismo correto da API. Adicionei uma limpeza no reply final pra garantir que isso nunca apareça pro usuário.
+Durante os testes percebi que o modelo às vezes emite chamadas de ferramenta como texto cru (`<function=...>`) em vez de usar o mecanismo correto da API. 
 
 ## Estrutura do projeto
 
