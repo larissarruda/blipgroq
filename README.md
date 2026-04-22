@@ -1,4 +1,4 @@
-﻿# IntelPlay: Agente de Recomendação de Filmes e Séries
+﻿# IntelPlay: Ferramenta para tratamento de fallback
 
 **[Testar o chatbot ao vivo](https://larissa-arruda-erfpc.chat.blip.ai/?appKey=aW50ZWxicmFzOTpkZTJjZmM5NS05MWY1LTRiNWItYmE0ZS0wYTQ0YTA3M2U0YzU=&_gl=1*14aj4nh*_gcl_au*NzA4NzkwODkwLjE3NzYwMTc4NjI.*_ga*NTI4OTI0NDA2LjE3NzYwMTc4NjI.*_ga_8GVWK8YMGL*czE3NzY4MjAwMDUkbzE2JGcxJHQxNzc2ODIwMDk0JGo0MiRsMCRoNTI2MTIyMTgx)**
 
