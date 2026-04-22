@@ -1,236 +1,158 @@
-# 🎬 OMDb AI Agent — Desafio 4 (Intelbras)
+﻿# IntelPlay: Agente de Recomendação de Filmes e Séries
 
-Agente de **IA Generativa com Function Calling** que atua como *fallback inteligente* de um chatbot Blip:
-quando o NLP principal não entende a intenção do usuário, o Blip faz uma chamada HTTP para este
-serviço, que usa um LLM (**Groq + LLaMA 3.3**) para interpretar a mensagem, decidir se precisa
-consultar a **API OMDb** (via *tool call*) e responder em linguagem natural.
+Esse projeto é o backend de um chatbot de recomendação de filmes e séries, desenvolvido como parte do Desafio 4 da Intelbras. A ideia é simples: quando o usuário manda uma mensagem no Blip e o NLP não entende o que ele quer, esse é o fallback. O agente usa um LLM (Groq com LLaMA 3.3) pra interpretar a mensagem, buscar dados reais na API do OMDb quando necessário, e responder em português de um jeito natural.
 
----
+## Como funciona
 
-## ✨ Arquitetura
+O fluxo básico é esse:
 
 ```
-Usuário ──► Blip (fluxo NLP) ──► (fallback) ──► POST /agent ──► Groq LLM
-                                                                  │
-                                                   tool_call ◄────┤
-                                                        │
-                                                        ▼
-                                                    OMDb API
-                                                        │
-                                                   resultado ────► LLM ──► resposta PT-BR
+Usuário → Blip → POST /agent → LLM (Groq)
+                                   ↓ (se precisar de dados)
+                               search_omdb (OMDb API)
+                                   ↓
+                               resposta em PT-BR → Blip → Usuário
 ```
 
-- **Stack:** Node.js 20 + Express + Groq SDK + OMDb
-- **Segurança:** Helmet, CORS, rate-limit, validação Zod, Bearer token opcional, logs com redaction
-- **Testes:** `node --test` (sem dependências externas)
-- **Deploy:** Render (`render.yaml`) ou Docker
+O legal é que o agente combina o conhecimento próprio do modelo com dados reais da API. Por exemplo, se você pede "me recomenda uma série na Netflix", ele pensa num título popular, busca os detalhes (nota IMDb, sinopse, elenco) na API e te responde com informações reais, sem inventar nada.
 
----
+## Pré-requisitos
 
-## 📁 Estrutura
+Você vai precisar de:
 
-```
-omdb-ai-agent/
-├── src/
-│   ├── server.js        # Bootstrap HTTP + graceful shutdown
-│   ├── app.js           # Express app (segurança, rotas, validação)
-│   ├── agent.js         # Loop de function-calling com Groq
-│   ├── omdbTool.js      # Definição da tool + cliente OMDb
-│   ├── config.js        # Variáveis de ambiente (validadas com Zod)
-│   └── logger.js        # Pino logger (com redaction de segredos)
-├── test/
-│   ├── app.test.js
-│   └── omdbTool.test.js
-├── .env.example
-├── Dockerfile
-├── render.yaml
-└── package.json
-```
+- **Node.js 20+**
+- **API Key do Groq** (gratuita) → https://console.groq.com/keys
+- **API Key do OMDb** (gratuita) → https://www.omdbapi.com/apikey.aspx
 
----
-
-## 🔑 Pré-requisitos
-
-1. **Node.js 20+** → https://nodejs.org
-2. **Conta no Groq (grátis)** → https://console.groq.com/keys (gere uma API Key)
-3. **Conta no OMDb (grátis)** → https://www.omdbapi.com/apikey.aspx (confirme o e-mail)
-4. **Conta no GitHub** (para publicar) e **Render** (para hospedar) — ambas grátis
-
----
-
-## 🚀 Como rodar localmente (passo a passo)
+## Como rodar localmente
 
 ```bash
-# 1. Clone / entre na pasta
-cd omdb-ai-agent
+# Clone o repositório e entre na pasta
+git clone https://github.com/larissarruda/blipgroq.git
+cd blipgroq
 
-# 2. Instale dependências
+# Instale as dependências
 npm install
 
-# 3. Configure variáveis de ambiente
+# Copie o arquivo de exemplo e preencha suas chaves
 cp .env.example .env
-# edite .env e preencha GROQ_API_KEY e OMDB_API_KEY
+# Abra o .env e coloque suas chaves em GROQ_API_KEY e OMDB_API_KEY
 
-# 4. Rode em modo dev (auto-reload)
-npm run dev
-# ou em produção
+# Suba o servidor
 npm start
+```
 
-# 5. Teste o health
+Para confirmar que está funcionando:
+
+```bash
 curl http://localhost:3000/health
 ```
 
-### Testando o endpoint do agente
+### Testando o agente
 
 ```bash
+# Perguntando sobre um filme específico
 curl -X POST http://localhost:3000/agent \
   -H "Content-Type: application/json" \
-  -d '{"message":"me fala da sinopse do filme Matrix de 1999"}'
+  -d '{"message":"qual a nota do filme Matrix?"}'
+
+# Pedindo uma recomendação
+curl -X POST http://localhost:3000/agent \
+  -H "Content-Type: application/json" \
+  -d '{"message":"me recomenda uma série pra assistir triste"}'
 ```
 
-Resposta esperada (exemplo):
-
-```json
-{
-  "reply": "🎬 The Matrix (1999) — Dirigido pelas Wachowskis...",
-  "toolCalls": [
-    { "name": "search_omdb", "arguments": { "title": "The Matrix", "year": 1999 }, "result": { "ok": true, "..." } }
-  ],
-  "usage": { "total_tokens": 612 }
-}
-```
-
-### Exemplo fora de escopo
-
-```bash
-curl -X POST http://localhost:3000/agent -H "Content-Type: application/json" \
-  -d '{"message":"qual a capital da França?"}'
-# → "Eu sou especializado em filmes e séries 🎥. Posso te sugerir algum título?"
-```
-
----
-
-## 🧪 Testes automatizados (auditoria)
+### Rodando os testes
 
 ```bash
 npm test
 ```
 
-Cobertura: validação de schemas da tool, respostas HTTP do servidor, middlewares de segurança,
-rotas 404 e tratamento de body inválido.
+## Deploy no Render
 
----
+1. Faça push do repositório pro GitHub
+2. No [dashboard do Render](https://dashboard.render.com), clique em **New → Blueprint**
+3. Selecione o repositório (ele vai ler o `render.yaml` automaticamente)
+4. Preencha as variáveis de ambiente `GROQ_API_KEY` e `OMDB_API_KEY`
+5. Clique em **Apply** e aguarde ~2 minutos
 
-## ☁️ Deploy no Render (recomendado)
+> O plano gratuito do Render "dorme" após 15 min sem uso. A primeira requisição depois disso pode demorar ~30s. Recomendo usar o [UptimeRobot](https://uptimerobot.com/) pra ficar batendo no `/health` a cada 10 minutos.
 
-### Opção A — via `render.yaml` (Blueprint — 1 clique)
+## Prompt utilizado
 
-1. Faça push deste repositório para o GitHub.
-2. Em https://dashboard.render.com, clique em **New → Blueprint** e selecione o repo.
-3. O Render lerá `render.yaml` e pedirá para preencher os segredos:
-   - `GROQ_API_KEY`
-   - `OMDB_API_KEY`
-   - `AGENT_AUTH_TOKEN` *(opcional, mas recomendado)*
-4. Clique em **Apply**. Em ~2 min o serviço sobe em `https://<nome>.onrender.com`.
+O system prompt completo fica em `src/agent.js` (constante `SYSTEM_PROMPT`). A ideia central por trás dele:
 
-### Opção B — manual
+```
+Você é o "IntelPlay", um agente conversacional em português do Brasil que atua como assistente
+de recomendação de filmes e séries na plataforma Blip.
 
-1. **New → Web Service** → conecte o repo.
-2. Runtime: **Node** | Build: `npm ci --omit=dev` | Start: `node src/server.js`
-3. Em **Environment**, adicione `GROQ_API_KEY` e `OMDB_API_KEY`.
-4. Health Check Path: `/health`.
+OBJETIVOS:
+1. Entender a mensagem do usuário (mesmo informal, com gírias ou erros de digitação).
+2. Recomendar ou informar sobre filmes/séries de forma útil, cordial e direta.
+3. Responder em português, com no máximo ~8 linhas por mensagem.
 
-> 💡 O **plano Free do Render dorme após 15 min de inatividade**. A 1ª requisição depois disso
-> demora ~30 s. Se o Blip reclamar de timeout, configure um pinger (ex.: UptimeRobot) batendo
-> em `/health` a cada 10 min.
+ESTRATÉGIA PRINCIPAL — USE SEMPRE QUE POSSÍVEL:
+Combine seu próprio conhecimento com a ferramenta search_omdb para dar respostas mais ricas:
+  a) Use seu conhecimento para escolher 1 título relevante para o pedido do usuário.
+  b) Chame search_omdb com esse título para obter nota IMDb, sinopse, elenco e ano reais.
+  c) Inclua os dados retornados na sua resposta final.
+IMPORTANTE: chame search_omdb UMA vez por rodada. Nunca emita chamadas de ferramenta
+como texto — use SEMPRE o mecanismo oficial de tool_calls da API.
 
----
+QUANDO O USUÁRIO MENCIONA UM TÍTULO ESPECÍFICO:
+- Chame search_omdb diretamente com o título informado.
+- Se retornar "not_found", peça confirmação do título de forma gentil.
+- Se retornar erro de rede/HTTP, peça desculpas e sugira tentar novamente.
 
-## 🤝 Integração com o Blip (fluxo do Desafio 1)
+QUANDO O USUÁRIO PEDE RECOMENDAÇÕES (por plataforma, gênero, humor, ator, época, etc.):
+- A ferramenta NÃO tem dados de disponibilidade por plataforma de streaming, mas você sabe
+  quais títulos são populares em cada uma pelo seu próprio conhecimento.
+- Escolha 1 a 3 títulos adequados com base no seu conhecimento e busque detalhes de cada um
+  com search_omdb para enriquecer a resposta.
 
-No fluxo do Blip, adicione um bloco **“Requisição HTTP”** no caminho *fallback do NLP*:
+FORA DE ESCOPO:
+- Se o pedido não for sobre filmes/séries/entretenimento audiovisual, explique educadamente
+  que você é especializado em cinema/TV e convide o usuário a voltar ao fluxo principal.
 
-- **Método:** `POST`
-- **URL:** `https://<seu-app>.onrender.com/agent`
-- **Headers:**
-  - `Content-Type: application/json`
-  - `Authorization: Bearer {{AGENT_AUTH_TOKEN}}` *(se você definiu o token)*
-- **Body:**
-  ```json
-  {
-    "message": "{{input.content}}"
-  }
-  ```
-- **Variável de saída:** `agentReply` ← `body.reply`
-
-Depois, crie um bloco de mensagem que envie `{{agentReply}}` ao usuário e volte para o menu principal.
-
----
-
-## 🧠 Prompt utilizado
-
-O *system prompt* fica em [src/agent.js](src/agent.js) na constante `SYSTEM_PROMPT`. Resumo:
-
-- Persona: **Cine-Assistente**, fallback do chatbot Blip.
-- Sempre em **PT-BR**, tom cordial, curto (até ~6 linhas).
-- **Proibido inventar dados** factuais — deve chamar a tool `search_omdb`.
-- **Escopo:** filmes e séries. Fora disso, responde educadamente e convida o usuário a voltar.
-- Regras específicas de uso de parâmetros (`type`, `year`, `plot`).
-
-## 🛠️ Definição da Tool (function calling)
-
-A tool `search_omdb` é descrita em [src/omdbTool.js](src/omdbTool.js) no formato OpenAI/Groq:
-
-| Parâmetro  | Tipo       | Descrição |
-|------------|------------|-----------|
-| `title`    | string     | Título do filme/série |
-| `imdb_id`  | string     | ID IMDb (tt#######) |
-| `year`     | integer    | Ano de lançamento |
-| `type`     | enum       | `movie` / `series` / `episode` |
-| `plot`     | enum       | `short` / `full` (padrão: short) |
-
-O LLM decide autonomamente quando e com quais parâmetros chamar. O retorno da tool é JSON
-normalizado (snake_case) para facilitar o entendimento do modelo.
-
----
-
-## 🔒 Decisões técnicas
-
-| Decisão | Justificativa |
-|---|---|
-| **Groq + LLaMA 3.3 70B** | Free tier generoso, baixa latência, suporte nativo a function calling |
-| **Zod** para validação | Falha cedo e de forma explícita (entradas do usuário e env vars) |
-| **Helmet + rate-limit + CORS** | Proteção OWASP básica (injection, DoS, CSRF) |
-| **Bearer token opcional** | Evita abuso do endpoint público por terceiros |
-| **Loop com `MAX_TOOL_ITERATIONS=3`** | Previne loops infinitos de tool-calls |
-| **Timeouts em LLM e OMDb** | Garante que o Blip não fique pendurado |
-| **Logs com redaction** | Nunca vaza `GROQ_API_KEY` / `OMDB_API_KEY` em logs |
-| **`node --test`** | Zero dependências de teste, roda em qualquer Node 20+ |
-| **ESM + `type: "module"`** | Código moderno, top-level await nos testes |
-
----
-
-## 🐳 Rodar com Docker (opcional)
-
-```bash
-docker build -t omdb-ai-agent .
-docker run --rm -p 3000:3000 --env-file .env omdb-ai-agent
+ESTILO:
+- Tom amigável, direto, sem emojis excessivos (no máximo 1).
+- Formate listas com traço (- Título (ano) — nota IMDb X.X: descrição curta).
+- Nunca exponha detalhes técnicos (chaves, URLs, JSON cru) ao usuário.
 ```
 
----
+## Decisões técnicas
 
-## 📋 Checklist dos critérios de avaliação
+**Por que esse prompt?**
 
-- [x] **Prompt engineering** — persona, escopo, tom e regras explícitas
-- [x] **Tool schema correto** — parâmetros, descrição, tipos e enum
-- [x] **Decisão autônoma** — `tool_choice: auto` + system prompt orientativo
-- [x] **Fora de escopo** — tratamento explícito no prompt + exemplo testado
-- [x] **Código organizado** — separação de responsabilidades (config, logger, tool, agent, app)
-- [x] **Deploy público** — `render.yaml` + Dockerfile
-- [x] **README reprodutível** — passo a passo completo
+A versão inicial só instruía o modelo a chamar a ferramenta para títulos específicos, e ele ficava perdido em pedidos vagos como "me recomenda algo na Netflix". O problema é que a API do OMDb não sabe quais títulos estão em qual streaming, mas o LLM sabe. Então o ajuste foi ensinar o agente a combinar os dois: usa o próprio conhecimento pra escolher o título, e usa a API pra buscar os dados reais (nota, sinopse, elenco). Isso resolveu o problema de respostas de erros genéricos.
 
----
+**Loop de iterações com limite (`MAX_TOOL_ITERATIONS = 5`)**
+O agente pode encadear várias chamadas à ferramenta numa mesma resposta. Isso foi necessário pra suportar recomendações: o modelo escolhe um título, busca os detalhes, depois pode buscar outro. O limite de 5 iterações existe pra evitar loops infinitos caso o modelo entre num ciclo.
 
-## 📝 Licença
+**Validação com Zod nas duas pontas**
+As variáveis de ambiente são validadas na inicialização do servidor e o conteúdo de cada requisição é validado antes de chegar no agente. A ideia é falhar cedo e com mensagem clara, muito melhor do que o erro aparecer no meio de uma chamada ao LLM.
 
-MIT — sinta-se à vontade para usar como base.
+**Helmet + rate-limit**
+O endpoint é público, então qualquer um pode bater nele. Cada requisição consome créditos da API do Groq, então o rate-limit era essencial. O Helmet cuida dos headers HTTP mais básicos.
+
+**`node --test` sem dependências de teste**
+Optei por não adicionar Jest ou Vitest. O test runner nativo do Node 20 resolve bem pra esse tamanho de projeto e mantém o `node_modules` menor.
+
+**Sanitização do reply**
+Durante os testes percebi que o modelo às vezes emite chamadas de ferramenta como texto cru (`<function=...>`) em vez de usar o mecanismo correto da API. Adicionei uma limpeza no reply final pra garantir que isso nunca apareça pro usuário.
+
+## Estrutura do projeto
+
+```
+src/
+├── server.js     # inicia o servidor HTTP
+├── app.js        # rotas, middlewares de segurança, validação
+├── agent.js      # loop de function calling com o Groq
+├── omdbTool.js   # definição da tool e chamada à API OMDb
+├── config.js     # variáveis de ambiente
+└── logger.js     # logs com Pino
+
+test/
+├── app.test.js
+└── omdbTool.test.js
+```
