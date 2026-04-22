@@ -134,7 +134,7 @@ O agente pode encadear várias chamadas à ferramenta numa mesma resposta. Isso 
 
 **Validação com Zod nas duas pontas**
 
-As variáveis de ambiente são validadas na inicialização do servidor e o conteúdo de cada requisição é validado antes de chegar no agente. A ideia é falhar cedo e com mensagem clara, muito melhor do que o erro aparecer no meio de uma chamada ao LLM.
+As variáveis de ambiente são parseadas e validadas via Zod no startup da aplicação, com falha imediata caso alguma chave obrigatória esteja ausente ou inválida. O body de cada requisição `POST /agent` também passa por um schema Zod antes de chegar no handler, garantindo tipos corretos e limites de tamanho sem depender de validação manual.
 
 **Helmet + rate-limit**
 
