@@ -55,7 +55,7 @@ export function createApp() {
           content: z.string().max(4000),
         }),
       )
-      .max(10)
+      .max(20)
       .optional(),
   });
 
