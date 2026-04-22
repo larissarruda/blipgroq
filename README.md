@@ -129,18 +129,23 @@ ESTILO:
 A versão inicial só instruía o modelo a chamar a ferramenta para títulos específicos, e ele ficava perdido em pedidos vagos como "me recomenda algo na Netflix". O problema é que a API do OMDb não sabe quais títulos estão em qual streaming, mas o LLM sabe. Então o ajuste foi ensinar o agente a combinar os dois: usa o próprio conhecimento pra escolher o título, e usa a API pra buscar os dados reais (nota, sinopse, elenco). Isso resolveu o problema de respostas de erros genéricos.
 
 **Loop de iterações com limite (`MAX_TOOL_ITERATIONS = 5`)**
+
 O agente pode encadear várias chamadas à ferramenta numa mesma resposta. Isso foi necessário pra suportar recomendações: o modelo escolhe um título, busca os detalhes, depois pode buscar outro. O limite de 5 iterações existe pra evitar loops infinitos caso o modelo entre num ciclo.
 
 **Validação com Zod nas duas pontas**
+
 As variáveis de ambiente são validadas na inicialização do servidor e o conteúdo de cada requisição é validado antes de chegar no agente. A ideia é falhar cedo e com mensagem clara, muito melhor do que o erro aparecer no meio de uma chamada ao LLM.
 
 **Helmet + rate-limit**
+
 O endpoint é público, então qualquer um pode bater nele. Cada requisição consome créditos da API do Groq, então o rate-limit era essencial. O Helmet cuida dos headers HTTP mais básicos.
 
 **`node --test` sem dependências de teste**
+
 Optei por não adicionar Jest ou Vitest. O test runner nativo do Node 20 resolve bem pra esse tamanho de projeto e mantém o `node_modules` menor.
 
 **Sanitização do reply**
+
 Durante os testes percebi que o modelo às vezes emite chamadas de ferramenta como texto cru (`<function=...>`) em vez de usar o mecanismo correto da API. Adicionei uma limpeza no reply final pra garantir que isso nunca apareça pro usuário.
 
 ## Estrutura do projeto
